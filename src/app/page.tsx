@@ -1,4 +1,4 @@
-import { publicClient } from "@/lib/supabase";
+import { publicClient } from "../lib /supabase";
 
 export default async function Page() {
   const { data: bills, error: billsError } = await publicClient

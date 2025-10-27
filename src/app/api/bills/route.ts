@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminClient } from "../../../lib/supabase";
+import { adminClient } from "../../../lib /supabase";
 export async function POST(req: NextRequest) {
     const body = await req.json();
     // body = { period, category, amount_total, notes?, image_url? }
