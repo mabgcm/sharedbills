@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
         const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
         const { data, error } = await adminClient.storage
-            .from("bills")
+            .from("bill-images")
             .upload(fileName, file, {
                 cacheControl: "3600",
                 upsert: false,
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bill-iamges/${fileName}`;
+        const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bill-images/${fileName}`;
 
         return NextResponse.json({ url: publicUrl });
     } catch (err: any) {
