@@ -1,7 +1,7 @@
 // src/app/api/admin-data/route.ts
 import { NextResponse } from "next/server";
-import { adminClient } from "@/lib/supabase";
-import { getTotals } from "@/lib/calc";
+import { adminClient } from "../../../lib /supabase";
+import { getTotals } from "../../../lib /calc";
 
 export async function GET() {
     // get bills

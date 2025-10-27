@@ -1,6 +1,6 @@
 // src/app/api/payments/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { adminClient } from "@/lib/supabase";
+import { adminClient } from "../../../../lib /supabase";
 
 export async function DELETE(
     req: NextRequest,
