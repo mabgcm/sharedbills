@@ -1,5 +1,8 @@
+// src/app/api/bills/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { adminClient } from "../../../lib /supabase";
+
+// Create a new bill row
 export async function POST(req: NextRequest) {
     const body = await req.json();
     // body = { period, category, amount_total, notes?, image_url? }
@@ -13,7 +16,7 @@ export async function POST(req: NextRequest) {
                 amount_total: body.amount_total,
                 notes: body.notes ?? null,
                 image_url: body.image_url ?? null,
-            }
+            },
         ])
         .select("*")
         .single();
