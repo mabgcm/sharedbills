@@ -7,7 +7,7 @@ export default async function Page() {
     .order("created_at", { ascending: false });
 
   const { data: payments, error: paymentsError } = await publicClient
-    .from("payments")
+    .from("payment")
     .select("*")
     .order("date", { ascending: false });
 
