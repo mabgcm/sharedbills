@@ -170,14 +170,41 @@ export default function AdminDashboard() {
                         }
                     />
 
-                    <input
-                        placeholder="Image URL (optional)"
-                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                        value={newBill.image_url}
-                        onChange={(e) =>
-                            setNewBill({ ...newBill, image_url: e.target.value })
-                        }
-                    />
+                    <div className="flex items-center justify-between">
+                        <input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const formData = new FormData();
+                                formData.append("file", file);
+
+                                const res = await fetch("/api/upload", {
+                                    method: "POST",
+                                    body: formData,
+                                });
+
+                                const result = await res.json();
+                                if (result.url) {
+                                    setNewBill({ ...newBill, image_url: result.url });
+                                    alert("✅ File uploaded successfully!");
+                                } else {
+                                    alert("Upload failed: " + result.error);
+                                }
+                            }}
+                            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        />
+                        {newBill.image_url && (
+                            <a
+                                href={newBill.image_url}
+                                target="_blank"
+                                className="ml-2 text-xs text-blue-600 underline"
+                            >
+                                View
+                            </a>
+                        )}
+                    </div>
 
                     <button
                         type="submit"
