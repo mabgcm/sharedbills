@@ -1,47 +1,38 @@
-import { publicClient } from "../lib /supabase";
-import { splitBill, getTotals, Bill, Payment } from "../lib /calc";
+import { splitBill } from "../lib /calc";
 
-function SummaryCard({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: number;
-  highlight?: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl p-3 shadow flex flex-col">
-      <span className="text-[11px] text-gray-500">{label}</span>
-      <span className={`text-lg font-semibold ${highlight ?? ""}`}>
-        ${value.toFixed(2)}
-      </span>
-    </div>
-  );
+// helper to fetch data from our own API route
+async function getPublicData() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ""}/api/public-data`, {
+    cache: "no-store",
+  });
+
+  // Fallback for local dev (Next.js server component environment doesn't
+  // always have NEXT_PUBLIC_BASE_URL). We'll attempt relative fetch if needed.
+  if (!res.ok) {
+    const altRes = await fetch("http://localhost:3000/api/public-data", {
+      cache: "no-store",
+    });
+    return altRes.json();
+  }
+
+  return res.json();
 }
 
 export default async function Page() {
-  // fetch bills
-  const { data: bills } = await publicClient
-    .from("bills")
-    .select("*")
-    .order("period", { ascending: false })
-    .order("created_at", { ascending: false });
+  // data: { bills, payments, totals }
+  const data = await getPublicData();
 
-  // fetch payments (from 'payment' table)
-  const { data: payments } = await publicClient
-    .from("payment")
-    .select("*")
-    .order("date", { ascending: false });
+  const bills = data?.bills || [];
+  const payments = data?.payments || [];
+  const totals = data?.totals || {
+    totalNeighborShare: 0,
+    neighborPaid: 0,
+    balance: 0,
+  };
 
-  const safeBills: Bill[] = bills ?? [];
-  const safePayments: Payment[] = payments ?? [];
-
-  const totals = getTotals(safeBills, safePayments);
-
-  // group bills by period (e.g. "2025-10")
-  const billsByPeriod: Record<string, Bill[]> = {};
-  safeBills.forEach((bill) => {
+  // group bills by period
+  const billsByPeriod: Record<string, any[]> = {};
+  bills.forEach((bill: any) => {
     if (!billsByPeriod[bill.period]) billsByPeriod[bill.period] = [];
     billsByPeriod[bill.period].push(bill);
   });
@@ -54,7 +45,10 @@ export default async function Page() {
           label="Your Share Total"
           value={totals.totalNeighborShare}
         />
-        <SummaryCard label="You Paid" value={totals.neighborPaid} />
+        <SummaryCard
+          label="You Paid"
+          value={totals.neighborPaid}
+        />
         <SummaryCard
           label={totals.balance >= 0 ? "You Owe" : "Your Credit"}
           value={Math.abs(totals.balance)}
@@ -65,8 +59,8 @@ export default async function Page() {
       {/* MONTHLY BILLS */}
       <section className="space-y-4">
         {Object.entries(billsByPeriod).map(([period, billsInMonth]) => {
-          // sum neighbor share for this month
-          const monthNeighborTotal = billsInMonth.reduce((acc, b) => {
+          // sum neighbor portion for that month
+          const monthNeighborTotal = (billsInMonth as any[]).reduce((acc, b) => {
             return acc + b.amount_total * 0.3;
           }, 0);
 
@@ -80,7 +74,7 @@ export default async function Page() {
               </h2>
 
               <ul className="divide-y">
-                {billsInMonth.map((bill) => {
+                {(billsInMonth as any[]).map((bill) => {
                   const shares = splitBill(bill.amount_total);
                   return (
                     <li
@@ -131,9 +125,9 @@ export default async function Page() {
       <section className="bg-white rounded-xl p-4 shadow">
         <h2 className="text-lg font-semibold mb-2">Payments</h2>
         <ul className="divide-y text-sm">
-          {safePayments
-            .filter((p) => p.payer === "neighbor")
-            .map((p) => (
+          {payments
+            .filter((p: any) => p.payer === "neighbor")
+            .map((p: any) => (
               <li key={p.id} className="py-2 flex justify-between">
                 <div>
                   <div className="font-medium">${p.amount.toFixed(2)}</div>
@@ -147,5 +141,24 @@ export default async function Page() {
         </ul>
       </section>
     </main>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  highlight?: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl p-3 shadow flex flex-col">
+      <span className="text-[11px] text-gray-500">{label}</span>
+      <span className={`text-lg font-semibold ${highlight ?? ""}`}>
+        ${Number(value).toFixed(2)}
+      </span>
+    </div>
   );
 }
