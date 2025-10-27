@@ -1,12 +1,18 @@
 // src/app/api/payments/[id]/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { adminClient } from "../../../../lib /supabase";
 
-export async function DELETE(
-    req: Request,
-    context: { params: { id: string } }
-) {
-    const id = context.params.id;
+export async function DELETE(req: Request) {
+    const url = new URL(req.url);
+    const segments = url.pathname.split("/");
+    const id = segments[segments.length - 1];
+
+    if (!id) {
+        return NextResponse.json(
+            { error: "Missing payment id in URL" },
+            { status: 400 }
+        );
+    }
 
     const { error } = await adminClient
         .from("payment")
