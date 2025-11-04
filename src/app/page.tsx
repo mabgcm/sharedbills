@@ -62,9 +62,10 @@ function SummaryCard({
 export default async function Page({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const easy = searchParams?.easy === "1";
+  const sp = (await searchParams) ?? {};
+  const easy = sp.easy === "1";
 
   // data: { bills, payments, totals }
   const data = await getPublicData();
