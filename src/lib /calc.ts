@@ -1,10 +1,10 @@
-// src/lib/calc.ts
-
 export type Bill = {
     id: string;
     period: string;
     category: string;
-    amount_total: number;
+    previous_balance: number; // carry-over
+    current_charge: number;   // this month's usage
+    total_amount: number;     // previous + current
     image_url: string | null;
     notes: string | null;
     created_at: string;
@@ -12,40 +12,48 @@ export type Bill = {
 
 export type Payment = {
     id: string;
-    date: string; // ISO date string
+    date: string;
     payer: "admin" | "neighbor";
     amount: number;
     note: string | null;
     created_at: string;
 };
 
-// For now hardcode split. Later we can read from settings table.
 const NEIGHBOR_RATIO = 0.3;
 const ADMIN_RATIO = 0.7;
 
-export function splitBill(amount_total: number) {
+export function splitBillParts(bill: Bill) {
+    const prevNeighbor = bill.previous_balance * NEIGHBOR_RATIO;
+    const currNeighbor = bill.current_charge * NEIGHBOR_RATIO;
+    const totalNeighbor = bill.total_amount * NEIGHBOR_RATIO;
+
+    const prevAdmin = bill.previous_balance * ADMIN_RATIO;
+    const currAdmin = bill.current_charge * ADMIN_RATIO;
+    const totalAdmin = bill.total_amount * ADMIN_RATIO;
+
     return {
-        neighborShare: amount_total * NEIGHBOR_RATIO,
-        adminShare: amount_total * ADMIN_RATIO,
+        prevNeighbor, currNeighbor, totalNeighbor,
+        prevAdmin, currAdmin, totalAdmin,
     };
 }
 
 export function getTotals(bills: Bill[], payments: Payment[]) {
-    // how much neighbor owes total
-    const totalNeighborShare = bills.reduce((sum, bill) => {
-        return sum + bill.amount_total * NEIGHBOR_RATIO;
-    }, 0);
-
-    // how much neighbor actually paid
+    const totalNeighborShare = bills.reduce((sum, b) => sum + b.total_amount * NEIGHBOR_RATIO, 0);
     const neighborPaid = payments
         .filter((p) => p.payer === "neighbor")
         .reduce((sum, p) => sum + p.amount, 0);
 
     const balance = totalNeighborShare - neighborPaid;
 
+    // (optional – helpful on the UI)
+    const monthCurrentNeighbor = bills.reduce((sum, b) => sum + b.current_charge * NEIGHBOR_RATIO, 0);
+    const monthCarryNeighbor = bills.reduce((sum, b) => sum + b.previous_balance * NEIGHBOR_RATIO, 0);
+
     return {
         totalNeighborShare,
         neighborPaid,
-        balance, // >0 means neighbor owes, <0 means neighbor has credit
+        balance,
+        monthCurrentNeighbor,
+        monthCarryNeighbor,
     };
 }

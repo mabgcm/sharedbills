@@ -2,10 +2,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminClient } from "../../../lib /supabase";
 
-// Create a new bill row
 export async function POST(req: NextRequest) {
     const body = await req.json();
-    // body = { period, category, amount_total, notes?, image_url? }
+    // body: { period, category, previous_balance, current_charge, notes?, image_url? }
+
+    const previous_balance = Number(body.previous_balance ?? 0);
+    const current_charge = Number(body.current_charge ?? 0);
+    const total_amount = previous_balance + current_charge;
 
     const { data, error } = await adminClient
         .from("bills")
@@ -13,7 +16,9 @@ export async function POST(req: NextRequest) {
             {
                 period: body.period,
                 category: body.category,
-                amount_total: body.amount_total,
+                previous_balance,
+                current_charge,
+                total_amount,
                 notes: body.notes ?? null,
                 image_url: body.image_url ?? null,
             },
