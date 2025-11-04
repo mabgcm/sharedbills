@@ -109,6 +109,7 @@ export default async function Page({
         <h1 className={cx("font-bold", easy ? "text-2xl" : "text-xl")}>
           Shared Bills
         </h1>
+        <p>108 Nottingham Rd</p>
         <a
           href={toggleHref}
           className={cx(
