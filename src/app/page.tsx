@@ -123,6 +123,9 @@ export default async function Page({
           {easy ? "Standard View" : "👵 Easy View"}
         </a>
       </header>
+      <section>
+        <p>Water Bill is not included. Will be added soon.</p>
+      </section>
 
       {/* SUMMARY CARDS */}
       <section
